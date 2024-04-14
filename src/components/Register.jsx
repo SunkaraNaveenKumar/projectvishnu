@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { asyncIsRegistered } from "../redux store/actions/userActions";
+import {
+  asyncIsRegistered,
+  setIsRegistered,
+} from "../redux store/actions/userActions";
 import { useNavigate } from "react-router-dom";
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -8,10 +11,10 @@ const Register = () => {
   const [userName, setUserName] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isRegistered, errors } = useSelector((state) => {
+  const { isRegistered, errors, isLoading } = useSelector((state) => {
     return state.userAuthData;
   });
-  console.log(isRegistered, errors);
+  console.log(isRegistered, errors, isLoading);
   const handleUserName = (e) => {
     setUserName(e.target.value);
   };
@@ -34,12 +37,27 @@ const Register = () => {
   useEffect(() => {
     if (isRegistered) {
       navigate(`/login`);
+      dispatch(setIsRegistered(false));
     }
   }, [isRegistered]);
+  if (isLoading) {
+    return (
+      isLoading && (
+        <div className="flex h-[100vh] items-center justify-center">
+          <p>Loading.....</p>
+        </div>
+      )
+    );
+  }
   return (
-    <div className="flex justify-center items-center bg-red-100 min-h-[100vh]">
-      <p>{errors && typeof errors === "string" && errors}</p>
+    <div className="flex justify-center items-center bg-red-100 min-h-[100vh] flex-col gap-y-5">
+      <p className="text-red-500">
+        {errors && typeof errors === "string" && errors}
+      </p>
       <form className="flex gap-y-5 flex-col w-[30%]" onSubmit={handleSubmit}>
+        {errors.username && (
+          <p className="text-red-500">{errors.username?.message}</p>
+        )}
         <input
           type="text"
           className="bg-gray-200 h-10 w-100"
@@ -47,6 +65,9 @@ const Register = () => {
           value={userName}
           onChange={handleUserName}
         />
+        {errors.email && (
+          <p className="text-red-500">{errors.email?.message}</p>
+        )}
         <input
           type="email"
           className="bg-gray-200 h-10 w-100"
@@ -54,6 +75,9 @@ const Register = () => {
           value={email}
           onChange={handleEmail}
         />
+        {errors.password && (
+          <p className="text-red-500">{errors.password?.message}</p>
+        )}
         <input
           type="password"
           className="bg-gray-200 h-10 w-100"
